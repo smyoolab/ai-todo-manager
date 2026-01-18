@@ -132,7 +132,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold">할 일을 더 스마트하게</h2>
+            <h2 className="text-xl font-semibold">AI가 도와주는 스마트한 할 일 관리</h2>
             <p className="text-sm text-muted-foreground">
               AI 기반 할 일 관리로 생산성을 높여보세요.
               <br />
