@@ -1,0 +1,178 @@
+# AI 할 일 관리 웹 서비스 - 개발 규칙
+
+## 1. 프로젝트 특성
+
+### 1.1 아키텍처
+- **Next.js 15 App Router** 기반의 웹 애플리케이션
+- 서버 컴포넌트를 기본으로 사용하고, 클라이언트 상호작용이 필요한 경우에만 클라이언트 컴포넌트 사용
+- API Route는 App Router의 `route.ts` 파일을 사용
+
+### 1.2 사용자 경험 최우선 원칙
+- **로딩 상태**: 모든 비동기 작업에 대해 로딩 UI를 제공한다
+  - Suspense와 loading.tsx를 활용한 서버 컴포넌트 로딩 처리
+  - 클라이언트에서는 `useState`와 스켈레톤 UI를 활용
+- **빈 상태**: 데이터가 없을 때 사용자에게 명확한 안내를 제공한다
+  - Empty 컴포넌트를 활용하여 친절한 빈 상태 메시지 표시
+- **오류 상태**: 모든 오류 상황에 대해 사용자 친화적인 오류 UI를 제공한다
+  - error.tsx를 활용한 서버 컴포넌트 오류 처리
+  - try-catch와 Error Boundary를 활용한 클라이언트 오류 처리
+- **상호작용 지연 최소화**: 
+  - Optimistic UI 업데이트 활용
+  - 로컬 상태를 먼저 업데이트하고 서버 동기화는 백그라운드에서 처리
+  - 필요한 경우에만 로딩 스피너 표시
+
+### 1.3 오류 처리 철저성
+- **서버 측 오류 처리**:
+  - 모든 API Route와 Server Action에서 try-catch로 예외를 포착
+  - 개발 환경(`process.env.NODE_ENV === 'development'`)에서는 `console.error`로 상세 로그 출력
+  - 프로덕션 환경에서는 민감한 정보를 제외한 오류 메시지만 반환
+- **클라이언트 측 오류 처리**:
+  - 모든 비동기 함수 호출을 try-catch로 감싸기
+  - Error Boundary를 활용한 컴포넌트 트리 오류 포착
+  - 사용자에게는 한글로 친절한 오류 메시지 제공
+- **오류 메시지 규칙**:
+  - 사용자에게 표시되는 모든 오류 메시지는 한글로 작성
+  - 기술적인 오류 코드나 스택 트레이스는 사용자에게 노출하지 않음
+  - 개발 환경에서는 `console.error`로 전체 오류 정보 출력
+
+## 2. 기술 스택
+
+### 2.1 핵심 프레임워크
+- **Next.js 15**: App Router 사용, 최신 기능 활용
+- **TypeScript**: 필수 사용, `strict: true` 모드 권장
+- **React 19**: 최신 React 기능 활용
+
+### 2.2 스타일링
+- **Tailwind CSS**: 유틸리티 퍼스트 CSS 프레임워크
+- **Shadcn/ui**: Radix UI 기반의 재사용 가능한 UI 컴포넌트 라이브러리
+  - `components/ui/` 디렉토리에 컴포넌트 관리
+  - 필요시 커스터마이징하여 사용
+
+### 2.3 백엔드 및 인증
+- **Supabase**: 
+  - 인증(Auth) 처리
+  - 데이터베이스(PostgreSQL) 관리
+  - 실시간 기능 활용 가능
+
+### 2.4 AI 통합
+- **AI SDK**: AI 모델 연동
+  - `@ai-sdk/react`를 활용한 클라이언트 측 AI 기능
+  - Server Action을 통한 서버 측 AI 처리
+
+### 2.5 코드 품질
+- **ESLint**: Next.js 및 TypeScript 규칙 기반 린팅
+  - `eslint-config-next` 설정 사용
+  - 모든 코드는 ESLint 규칙을 준수해야 함
+
+## 3. 코딩 스타일
+
+### 3.1 컴포넌트 작성 규칙
+- **함수형 컴포넌트 기본 사용**: 클래스 컴포넌트 사용 금지
+- **화살표 함수 사용**: 모든 함수는 화살표 함수로 작성
+  ```typescript
+  // ✅ 올바른 예시
+  const MyComponent = () => {
+    return <div>Content</div>;
+  };
+  
+  // ❌ 잘못된 예시
+  function MyComponent() {
+    return <div>Content</div>;
+  }
+  ```
+
+### 3.2 파일 명명 규칙
+- **컴포넌트 파일명**: 파스칼 케이스(PascalCase)로 저장
+  - 예: `TodoList.tsx`, `UserProfile.tsx`, `TaskCard.tsx`
+- **유틸리티 파일명**: 케밥 케이스(kebab-case) 또는 카멜 케이스(camelCase)
+  - 예: `utils.ts`, `date-helpers.ts`, `api-client.ts`
+- **훅 파일명**: `use-` 접두사와 케밥 케이스
+  - 예: `use-todo.ts`, `use-auth.ts`
+
+### 3.3 주석 및 문서화 규칙
+- **한글 주석 필수**: 모든 함수와 컴포넌트는 한글로 주석 작성
+- **함수/컴포넌트 상단**: 한 문장으로 개요를 한글로 작성
+- **JSDoc 사용**: 모든 공개 함수와 컴포넌트에 JSDoc 주석을 한글로 작성
+  ```typescript
+  /**
+   * 할 일 목록을 표시하는 컴포넌트
+   * @param {Todo[]} todos - 표시할 할 일 목록
+   * @param {Function} onToggle - 할 일 완료 상태를 토글하는 함수
+   * @returns {JSX.Element} 할 일 목록 UI
+   */
+  const TodoList = ({ todos, onToggle }: TodoListProps) => {
+    // 컴포넌트 로직
+  };
+  ```
+
+### 3.4 TypeScript 사용 규칙
+- **타입 정의 필수**: 모든 함수의 매개변수와 반환값에 타입 명시
+- **인터페이스 우선**: 타입 별칭보다 인터페이스 사용 권장
+- **strict 모드**: `tsconfig.json`에서 `strict: true` 설정 권장
+- **any 사용 금지**: `any` 타입 사용을 최대한 피하고, 필요한 경우 `unknown` 사용 후 타입 가드 활용
+
+### 3.5 컴포넌트 구조 규칙
+- **컴포넌트 분리**: 단일 책임 원칙에 따라 작은 단위로 컴포넌트 분리
+- **Props 타입 정의**: 모든 컴포넌트의 Props는 인터페이스로 정의
+  ```typescript
+  interface TodoItemProps {
+    todo: Todo;
+    onToggle: (id: string) => void;
+    onDelete: (id: string) => void;
+  }
+  ```
+
+### 3.6 상태 관리 규칙
+- **로컬 상태**: `useState` 또는 `useReducer` 사용
+- **서버 상태**: Server Components와 Server Actions 활용
+- **전역 상태**: 필요한 경우에만 Context API 또는 상태 관리 라이브러리 사용
+
+### 3.7 비동기 처리 규칙
+- **Server Actions**: 서버 측 비동기 작업은 Server Action 사용
+- **클라이언트 비동기**: `async/await`와 try-catch를 함께 사용
+- **로딩 상태**: 모든 비동기 작업에 로딩 상태 관리
+
+### 3.8 ESLint 규칙 준수
+- 모든 코드는 ESLint 규칙을 준수해야 함
+- 린트 오류는 빌드 전에 반드시 수정
+- `npm run lint` 명령어로 정기적으로 코드 검사
+
+## 4. 디렉토리 구조
+
+```
+my-app/
+├── app/                    # Next.js App Router 페이지 및 라우트
+│   ├── (auth)/            # 인증 관련 라우트 그룹
+│   ├── (dashboard)/       # 대시보드 라우트 그룹
+│   ├── api/               # API Route 핸들러
+│   ├── layout.tsx         # 루트 레이아웃
+│   └── page.tsx           # 홈 페이지
+├── components/            # 재사용 가능한 컴포넌트
+│   ├── ui/               # Shadcn/ui 컴포넌트
+│   └── features/         # 기능별 컴포넌트
+├── lib/                  # 유틸리티 함수 및 헬퍼
+├── hooks/                # 커스텀 훅
+├── types/                # TypeScript 타입 정의
+└── public/               # 정적 파일
+```
+
+## 5. 추가 권장 사항
+
+### 5.1 접근성
+- ARIA 속성 적절히 사용
+- 키보드 네비게이션 지원
+- 색상 대비 비율 준수
+
+### 5.2 성능 최적화
+- 이미지 최적화: Next.js Image 컴포넌트 사용
+- 코드 스플리팅: 동적 import 활용
+- 메모이제이션: `useMemo`, `useCallback` 적절히 활용
+
+### 5.3 보안
+- 환경 변수: 민감한 정보는 `.env.local`에 저장하고 `.gitignore`에 추가
+- 입력 검증: Zod 등을 활용한 스키마 검증
+- XSS 방지: 사용자 입력은 적절히 이스케이프 처리
+
+### 5.4 테스트 (향후)
+- 단위 테스트: Jest + React Testing Library
+- 통합 테스트: Playwright 또는 Cypress
